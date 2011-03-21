@@ -1,0 +1,100 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <script src="processing.js"></script>
+  <script src="init.js"></script>
+  <script src="faye-browser-min.js"></script>
+<body>
+
+<script type="application/processing">
+int num;
+var pressed = false;
+
+void setup()
+{
+  	size(640, 480);
+  	background(102);
+	client = new Faye.Client('http://192.168.1.5:8000/');
+	client.subscribe('/messages', function(message) {
+		onRemoteDraw(JSON.parse(message.text));
+	});
+}
+
+void mousePressed() {
+    pressed = true;
+}
+
+void mouseReleased() {
+    pressed = false;
+	var coords = [uid, -1, -1];
+	client.publish('/messages', {
+        	text: JSON.stringify(coords)
+        	});
+	prevX = -1;
+	prevY = -1;
+}
+
+var prevX = -1;
+var prevY = -1;
+
+void onRemoteDraw(msg) {
+	if (msg[1] == -2) {
+  		background(102);
+		return;
+	}
+	if (msg[0] == uid) return;
+	if (msg[1] == -1) {
+		prevX = -1;
+		prevY = -1;
+		return;
+	}
+
+	stroke(255);
+	if (prevX == -1) {
+		prevX = msg[1];
+		prevY = msg[2];
+	}
+	line(msg[1], msg[2], prevX, prevY);
+	prevX = msg[1];
+	prevY = msg[2];
+}
+
+void draw() {
+  	stroke(255);
+  	if(pressed) {
+		if (prevX == -1) {
+			prevX = mouseX;
+			prevY = mouseY;
+		}
+    		line(mouseX, mouseY, prevX, prevY);
+		prevX = mouseX;
+		prevY = mouseY;
+		var coords = [uid, mouseX, mouseY];
+	       	client.publish('/messages', {
+                		text: JSON.stringify(coords) 
+        		});
+	}
+}
+</script>
+
+<script>
+var client;
+var uid = Faye.random(128);
+
+function doClear() {
+	var coords = [uid, -2, -2];
+	client.publish('/messages', {
+        	text: JSON.stringify(coords)
+        	});
+}
+</script>
+
+<input type="button" value="Clear" id="myButton1" onclick="doClear();"></input>
+<br/>
+<canvas id='myCanvas'></canvas>
+
+</body>
+</html>
+
+
+

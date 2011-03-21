@@ -1,0 +1,134 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <script src="faye-browser-min.js"></script>
+  <script src="processing.js"></script>
+<body>
+
+<input type="button" value="Clear" id="myButton1" onclick="doClear();"></input>
+<br/>
+<canvas id='canvas1' width=640 height=480></canvas>
+
+<script type="text/javascript">
+var pressed = false;
+var client;
+var uid = Faye.random(128);
+var channel;
+var pubsub;
+var cmds = new Array();
+
+function init() {
+        channel = getChannel();
+        pubsub = '/m/' + pathArray[pathArray.length-1];
+	client = new Faye.Client('http://localhost:8000/');
+	client.subscribe(pubsub, function(message) {
+		onRemoteDraw(JSON.parse(message.text));
+	});
+}
+
+var prevX = -1;
+var prevY = -1;
+
+function onRemoteDraw(msg) {
+	if (msg[1] == -2) {
+		cmds.push([-2, msg[2]]);
+		return;
+	}
+	if (msg[0] == uid) return;
+	if (msg[1] == -1) {
+		prevX = -1;
+		prevY = -1;
+		return;
+	}
+	if (prevX == -1) {
+		prevX = msg[1];
+		prevY = msg[2];
+	}
+	cmds.push([0, msg[1], msg[2], prevX, prevY]);
+	prevX = msg[1];
+	prevY = msg[2];
+}
+
+function doClear() {
+        var coords = [uid, -2, 102];
+        client.publish(pubsub, {
+                text: JSON.stringify(coords)
+        });
+}
+
+function getChannel() {
+        pathArray = window.location.pathname.split( '/' );
+        return pathArray[pathArray.length-1];
+}
+
+if (window.addEventListener) {
+  window.addEventListener("load", function() {
+	init();
+  });
+}
+
+function sketchProc(processing) {
+
+processing.setup = function() {
+	cmds.push([-2, 102]);
+	cmds.push([-3, 255]);
+}
+
+processing.mousePressed = function() {
+    pressed = true;
+}
+
+processing.mouseReleased = function() {
+    pressed = false;
+	var coords = [uid, -1, -1];
+	client.publish(pubsub, {
+        	text: JSON.stringify(coords)
+        	});
+	prevX = -1;
+	prevY = -1;
+}
+
+processing.draw = function() {
+  	if(pressed) {
+		var curX = processing.mouseX;
+		var curY = processing.mouseY;
+		if (prevX == -1) {
+			prevX = curX;
+			prevY = curY;
+		}
+		cmds.push([0, curX, curY, prevX, prevY]);
+		prevX = curX;
+		prevY = curY;
+		var coords = [uid, curX, curY];
+	       	client.publish(pubsub, {
+                		text: JSON.stringify(coords) 
+        		});
+	}
+	while(cmds.length > 0) {
+		cmd = cmds.shift();
+		switch (cmd[0]) {
+			case 0:
+				processing.line(cmd[1], cmd[2], cmd[3], cmd[4]);
+				break;
+			case -2:
+				processing.background(cmd[1]);
+				break;
+			case -3:
+				processing.stroke(cmd[1]);
+				break;
+		}
+	}
+}
+}
+
+var canvas = document.getElementById("canvas1");  
+// attaching the sketchProc function to the canvas  
+var p = new Processing(canvas, sketchProc); 
+
+</script>
+
+</body>
+</html>
+
+
+

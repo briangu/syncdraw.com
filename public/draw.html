@@ -1,0 +1,61 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <link href="global.css" rel="stylesheet" type="text/css" />
+  <script src="processing.js"></script>
+  <script src="faye-browser-min.js"></script>
+  <script src="sd.js"/></script>
+<script type="text/javascript">
+
+  var _gaq = _gaq || [];
+  _gaq.push(['_setAccount', 'UA-19900383-1']);
+  _gaq.push(['_trackPageview']);
+
+  (function() {
+    var ga = document.createElement('script'); ga.type = 'text/javascript'; ga.async = true;
+    ga.src = ('https:' == document.location.protocol ? 'https://ssl' : 'http://www') + '.google-analytics.com/ga.js';
+    var s = document.getElementsByTagName('script')[0]; s.parentNode.insertBefore(ga, s);
+  })();
+
+</script>
+  <script type="text/javascript">
+   /* for Mozilla */
+   if (document.addEventListener) {
+       document.addEventListener("DOMContentLoaded", init, false);
+   }
+
+   /* for Internet Explorer */
+   /*@cc_on @*/
+   /*@if (@_win32)
+       document.write("<script defer src=ie_onload.js><"+"/script>");
+   /*@end @*/
+
+   /* for other browsers */
+   window.onload = init;
+  </script>
+</head>
+<body>
+<div class="mainbody">
+        <div id="header">
+                <span id="logo">
+                       SyncDraw.com
+                </span>
+                Fast and easy shared online whiteboard. Share your link and draw together!
+        </div>
+
+  <div class="center">
+  <input type="button" value="Clear" id="myButton1" onclick="doClear();"></input>
+  <br/>
+  <canvas id='canvas1' width=640 height=480></canvas>
+  </div>
+</div>
+<div class="footer">
+	Copyright 2010 <a href="http://www.ops5.com">OPS5 Limited</a> <a
+	href="mailto:1fan1@ops5.com">contact</a>
+</div>
+
+</body>
+</html>
+
+
+

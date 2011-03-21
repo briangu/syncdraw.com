@@ -1,0 +1,20 @@
+
+<html> 
+<head> 
+<script src="faye-browser-min.js"></script>
+ 
+<script type="text/javascript"> 
+
+var client = new Faye.Client('http://localhost:8000/');
+client.publish('/messages', {
+  text: 'Hello world'
+});
+ 
+</script> 
+ 
+</head> 
+ 
+<body> 
+</body> 
+ 
+</html> 
